@@ -15,7 +15,7 @@ public class Main {
         //START RABBIT MQ QUEUES
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
-        //GET PRIVATE KEY
+        //GET PRIVATE KEY TODO
         try(Connection connection = factory.newConnection();
             Channel channel = connection.createChannel()){
 
@@ -27,8 +27,10 @@ public class Main {
             do {
                 String message;
                 String exchange;
+
                 System.out.println("X to advertise to X cruise, Y to advertise to Y cruise, N to stop process.");
                 info = System.in.read();
+
                 switch (info) {
                     case 'X':
                         exchange = ADV_X_EXC;
@@ -42,8 +44,7 @@ public class Main {
                         continue;
 
                 }
-                String signed_message = message; //must sign TODO
-                channel.basicPublish(exchange,"",null,signed_message.getBytes(StandardCharsets.UTF_8));
+                channel.basicPublish(exchange,"",null,message.getBytes(StandardCharsets.UTF_8));
                 System.out.println("SENT TO " + exchange + " MESSAGE:\"" + message+"\"");
             } while (info!= 'N');
         }
