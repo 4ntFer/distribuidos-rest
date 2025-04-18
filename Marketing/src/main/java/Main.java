@@ -15,15 +15,14 @@ public class Main {
         //START RABBIT MQ QUEUES
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
-        //GET PRIVATE KEY TODO
         try(Connection connection = factory.newConnection();
             Channel channel = connection.createChannel()){
 
             channel.exchangeDeclare(ADV_X_EXC,"fanout");
             channel.exchangeDeclare(ADV_Y_EXC,"fanout");
             int info;
-            //LOOP TO SEND TO MARKETING
 
+            //LOOP TO SEND TO MARKETING
             do {
                 String message;
                 String exchange;
