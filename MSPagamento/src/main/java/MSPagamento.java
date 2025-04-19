@@ -4,7 +4,11 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.concurrent.TimeoutException;
+
+import  java.security.*;
 
 public class MSPagamento {
     private static final String HOST = "localhost";
@@ -14,6 +18,8 @@ public class MSPagamento {
 
     private static final String RESERVAS_EXCHANGE_NAME = "reservas";
     private static final String PAGAMETOS_EXCHANGE_NAME = "pagamentos";
+
+    private static final PrivateKey privateKey = GetKeyFromFile.loadPrivateKey("pagamento.priv");
 
     private static Connection connection;
 
@@ -37,13 +43,28 @@ public class MSPagamento {
             System.out.println(message);
 
             if(validaPagamento()){
-                publicaEmPagamentoAprovado("Pagamento Aprovado");
+                publicaEmPagamentoAprovado(assinaMensagem(("Pagamento Aprovado")));
             }else {
-                publicaEmPagamentoRecusado("Pagamento Recusado");
+                publicaEmPagamentoRecusado(assinaMensagem("Pagamento Recusado"));
             }
         };
 
         channel.basicConsume(reservas_criadas_queue_name, true, reservaCriadaCallback, cosumerTag -> {});
+    }
+
+    private static String assinaMensagem(String message){
+        try {
+
+            Signature signature = Signature.getInstance("SHA256withRSA");
+            signature.initSign(privateKey);
+            signature.update(message.getBytes(StandardCharsets.UTF_8));
+
+            return "message:" + message + "," +
+                    "signature:" + Base64.getEncoder().encodeToString(signature.sign());
+
+        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static boolean validaPagamento(){
