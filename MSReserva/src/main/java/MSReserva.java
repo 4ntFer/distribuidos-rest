@@ -30,22 +30,21 @@ public class MSReserva {
 
         // ESCUTA
 
-        channel.queueDeclare(PAGAMENTO_APROVADO_RK, false, false, false, null);
-        channel.queueDeclare(PAGAMENTO_RECUSADO_RK, false, false, false, null);
-        channel.queueDeclare(BILHETE_GERADO_RK, false, false, false, null);
-
         String pagamento_aprovado_queue_name = channel.queueDeclare().getQueue();
         String pagamento_recusado_queue_name = channel.queueDeclare().getQueue();
         String bilhete_gerado_queue_name = channel.queueDeclare().getQueue();
 
+        channel.exchangeDeclare(PAGAMENTOS_EXCHANGE_NAME, "direct");
         channel.queueBind(
                 pagamento_aprovado_queue_name, PAGAMENTOS_EXCHANGE_NAME, PAGAMENTO_APROVADO_RK
         );
 
+        channel.exchangeDeclare(PAGAMENTOS_EXCHANGE_NAME, "direct");
         channel.queueBind(
                 pagamento_recusado_queue_name, PAGAMENTOS_EXCHANGE_NAME, PAGAMENTO_RECUSADO_RK
         );
 
+        channel.exchangeDeclare(BILHETES_EXCHANGE_NAME, "direct");
         channel.queueBind(
                 bilhete_gerado_queue_name, BILHETES_EXCHANGE_NAME, BILHETE_GERADO_RK
         );
@@ -55,9 +54,11 @@ public class MSReserva {
             System.out.println(message);
         };
 
-        channel.basicConsume(PAGAMENTO_APROVADO_RK,true, callback, consumerTag -> {});
-        channel.basicConsume(PAGAMENTO_RECUSADO_RK,true, callback, consumerTag -> {});
-        channel.basicConsume(BILHETE_GERADO_RK,true, callback, consumerTag -> {});
+        channel.basicConsume(pagamento_aprovado_queue_name,true, callback, consumerTag -> {});
+        channel.basicConsume(pagamento_recusado_queue_name,true, callback, consumerTag -> {});
+        channel.basicConsume(bilhete_gerado_queue_name,true, callback, consumerTag -> {});
+
+        publicaEmReservaCriada("Teste");
     }
 
     private static void publicaEmReservaCriada(String message){

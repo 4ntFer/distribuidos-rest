@@ -8,10 +8,13 @@ import java.util.concurrent.TimeoutException;
 
 public class MSPagamento {
     private static final String HOST = "localhost";
-    private static final String RESERVA_CRIADA_QUEUE_NAME = "reserva_criada";
-    private static final String PAGAMENTO_RECUSADO_QUEUE_NAME = "pagamento_recusado";
-    private static final String PAGAMENTO_APROVADO_QUEUE_NAME = "pagamento_aprovado";
+    private static final String RESERVA_CRIADA_RK = "reserva_criada";
+    private static final String PAGAMENTO_RECUSADO_RK = "pagamento_recusado";
+    private static final String PAGAMENTO_APROVADO_RK = "pagamento_aprovado";
+
+    private static final String RESERVAS_EXCHANGE_NAME = "reservas";
     private static final String PAGAMETOS_EXCHANGE_NAME = "pagamentos";
+
     private static Connection connection;
 
     public static void main(String [] args) throws Exception{
@@ -19,9 +22,20 @@ public class MSPagamento {
         connection = factory.newConnection();
 
         Channel channel = connection.createChannel();
-        channel.queueDeclare(RESERVA_CRIADA_QUEUE_NAME, false, false, false, null);
+
+        String reservas_criadas_queue_name = channel.queueDeclare().getQueue();
+
+        channel.exchangeDeclare(RESERVAS_EXCHANGE_NAME, "direct");
+        channel.queueBind(
+                reservas_criadas_queue_name,
+                RESERVAS_EXCHANGE_NAME,
+                RESERVA_CRIADA_RK
+        );
 
         DeliverCallback reservaCriadaCallback = (consumerTag, delivery) -> {
+            String message = new String(delivery.getBody(), "UTF-8");
+            System.out.println(message);
+
             if(validaPagamento()){
                 publicaEmPagamentoAprovado("Pagamento Aprovado");
             }else {
@@ -29,7 +43,7 @@ public class MSPagamento {
             }
         };
 
-        channel.basicConsume(RESERVA_CRIADA_QUEUE_NAME, true, reservaCriadaCallback, cosumerTag -> {});
+        channel.basicConsume(reservas_criadas_queue_name, true, reservaCriadaCallback, cosumerTag -> {});
     }
 
     private static boolean validaPagamento(){
@@ -43,7 +57,7 @@ public class MSPagamento {
 
             channel.basicPublish(
                     PAGAMETOS_EXCHANGE_NAME,
-                    PAGAMENTO_APROVADO_QUEUE_NAME,
+                    PAGAMENTO_APROVADO_RK,
                     null,
                     message.getBytes()
             );
@@ -60,7 +74,7 @@ public class MSPagamento {
 
             channel.basicPublish(
                     PAGAMETOS_EXCHANGE_NAME,
-                    PAGAMENTO_RECUSADO_QUEUE_NAME,
+                    PAGAMENTO_RECUSADO_RK,
                     null,
                     message.getBytes()
             );
