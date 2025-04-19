@@ -18,7 +18,6 @@ public class GetKeyFromFile {
                 .replace("-----END PRIVATE KEY-----", "")
                 .replaceAll("\\s", "");
 
-        System.out.println(keyPem);
         byte[] keyBytes = Base64.getDecoder().decode(keyPem);
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
         return KeyFactory.getInstance("RSA").generatePrivate(keySpec);

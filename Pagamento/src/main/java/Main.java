@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 
 import java.security.PrivateKey;
 import java.security.*;
+import java.util.Base64;
 import java.util.concurrent.ThreadLocalRandom;
 
 
@@ -30,13 +31,14 @@ public class Main {
             message = message + " || PAYMENT FAILED";
             topic = "fail";
         }
-        System.out.println("RESULT OF PAYMENT: " +message);
+
 
         Signature signature = Signature.getInstance("SHA256withRSA");
         signature.initSign(privKey);
         signature.update(message.getBytes(StandardCharsets.UTF_8));
-
-        channel.basicPublish(PAYMENT_EXCHANGE,"payment."+topic,null,signature.sign());
+        String signed_message = message+"\n----- SIGNATURE -----\n"+ Base64.getEncoder().encodeToString(signature.sign());
+        System.out.println("RESULT OF PAYMENT: " +signed_message);
+        channel.basicPublish(PAYMENT_EXCHANGE,"payment."+topic,null,signed_message.getBytes(StandardCharsets.UTF_8));
     }
 
     public static void main(String[] args) throws Exception {
@@ -61,6 +63,7 @@ public class Main {
 
             };
             channel.basicConsume(RESERVE_QUEUE, true, callback, _ -> {});
+            System.out.println("MS Pagamento started. ANY KEY TO STOP.");
             System.in.read();
 
         }
