@@ -40,11 +40,15 @@ public class MSPagamento {
 
         DeliverCallback reservaCriadaCallback = (consumerTag, delivery) -> {
             String message = new String(delivery.getBody(), "UTF-8");
-            System.out.println(message);
+            System.out.println("** Menssagem recebida em Reserva criada: "  + message);
 
             if(validaPagamento()){
+                System.out.println("** Pagamento validado");
+                System.out.println("** Publicando em pagamento aprovado");
                 publicaEmPagamentoAprovado(assinaMensagem(("Pagamento Aprovado")));
             }else {
+                System.out.println("** Pagamento não validado");
+                System.out.println("** Publicando em pagamento recusado");
                 publicaEmPagamentoRecusado(assinaMensagem("Pagamento Recusado"));
             }
         };
