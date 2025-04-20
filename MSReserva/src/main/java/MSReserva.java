@@ -56,14 +56,24 @@ public class MSReserva {
                 bilhete_gerado_queue_name, BILHETES_EXCHANGE_NAME, BILHETE_GERADO_RK
         );
 
-        DeliverCallback PagamentoCallback = (consumerTag, delivery) -> {
+        DeliverCallback PagamentoCallbackSuccess = (consumerTag, delivery) -> {
             String message = new String(delivery.getBody(), "UTF-8");
-            processaMensagemPagamento(message);
+            processaMensagemPagamento(message,true);
+        };
+        DeliverCallback PagamentoCallbackFailure = (consumerTag, delivery) -> {
+            String message = new String(delivery.getBody(), "UTF-8");
+            processaMensagemPagamento(message,false);
+        };
+        DeliverCallback BilheteCallback = (consumerTag, delivery) -> {
+            String message = new String(delivery.getBody(), "UTF-8");
+            System.out.println("** Bilhete Gerado : " + message);
         };
 
-        channel.basicConsume(pagamento_aprovado_queue_name,true, PagamentoCallback, consumerTag -> {});
-        channel.basicConsume(pagamento_recusado_queue_name,true, PagamentoCallback, consumerTag -> {});
-        //channel.basicConsume(bilhete_gerado_queue_name,true, callback, consumerTag -> {});
+
+
+        channel.basicConsume(pagamento_aprovado_queue_name,true, PagamentoCallbackSuccess, consumerTag -> {});
+        channel.basicConsume(pagamento_recusado_queue_name,true, PagamentoCallbackFailure, consumerTag -> {});
+        channel.basicConsume(bilhete_gerado_queue_name,true, BilheteCallback, consumerTag -> {});
 
         System.out.println("** Criando reserva");
         System.out.println("** Publicando em reserva criada");
@@ -87,7 +97,7 @@ public class MSReserva {
         }
     }
 
-    private static void processaMensagemPagamento(String message){
+    private static void processaMensagemPagamento(String message, boolean success){
         System.out.println("** Mensagem recebida de pagamentos: " + message);
 
         Map<String, String> desMsg = desserializePagamento(message);
@@ -97,8 +107,8 @@ public class MSReserva {
             System.out.println("** Assinatura da mensagem passou pela validação");
             System.out.println("** Mensagem recebida de pagamentos: " + desMsg.get("message"));
 
-            if(!desMsg.get("message").equals("Pagamento Aprovado")){
-                System.out.println("** Cancelando Reserva");
+            if(!success){
+                System.out.println("** Pagamento Falho, Cancelando Reserva");
             }
         }
         else {
