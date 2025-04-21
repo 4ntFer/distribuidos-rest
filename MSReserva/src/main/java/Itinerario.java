@@ -30,16 +30,16 @@ public class Itinerario {
 
 
         for(String data : datas_de_partida_disponiveis){
-            if(data_de_embarque.equals(data)){
+            if(data_de_embarque.equals(data) || data_de_embarque.isEmpty()){
                 embarqueFlag = true;
 
                 break;
             }
         }
 
-        return (destino.equals(porto_de_desembarque)&&
+        return ((destino.equals(porto_de_desembarque)|| destino.isEmpty())&&
                 embarqueFlag &&
-                porto_de_embarque.equals(this.porto_de_embarque));
+                (porto_de_embarque.equals(this.porto_de_embarque) || porto_de_embarque.isEmpty()));
     }
 
     @Override

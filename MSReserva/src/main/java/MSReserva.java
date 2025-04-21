@@ -79,9 +79,6 @@ public class MSReserva {
 
         client.criaReservaDoCliente();
 
-        System.out.println("** Criando reserva");
-        System.out.println("** Publicando em reserva criada");
-
         if(client.reserva != null){
             System.out.println("** Criando reserva");
             System.out.println("** Publicando em reserva criada");

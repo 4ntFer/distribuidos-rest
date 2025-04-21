@@ -50,10 +50,11 @@ public class HandleClient{
         );
 
         int i = 0;
-        for(Itinerario it : itinerarios){
-            System.out.println("["+ i +"]\t" + it.toString() + "\n");
+        for(Itinerario it : itinerarios) {
+            System.out.println("[" + i + "]\t" + it.toString() + "\n");
             i++;
         }
+
 
         System.out.print("Informe o itinerario: ");
         int indexEscolhido = scanner.nextInt();
@@ -95,6 +96,6 @@ public class HandleClient{
                 result.add(it);
         }
 
-        return result.toArray(new Itinerario[]{new Itinerario(new String[0], "", "", "", "", "", "")});
+        return result.toArray(new Itinerario[0]);
     }
 }
