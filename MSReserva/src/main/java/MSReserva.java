@@ -121,7 +121,6 @@ public class MSReserva {
 
         if(validaChaves(pagamentosPublicKey, signatureBytes, desMsg.get("message"))){
             System.out.println("** Assinatura da mensagem passou pela validação");
-            System.out.println("** Mensagem recebida de pagamentos: " + desMsg.get("message"));
 
             if(!success){
                 System.out.println("** Pagamento Falho, Cancelando Reserva");
