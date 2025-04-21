@@ -75,9 +75,25 @@ public class MSReserva {
         channel.basicConsume(pagamento_recusado_queue_name,true, PagamentoCallbackFailure, consumerTag -> {});
         channel.basicConsume(bilhete_gerado_queue_name,true, BilheteCallback, consumerTag -> {});
 
+        HandleClient client = new HandleClient();
+
+        client.criaReservaDoCliente();
+
         System.out.println("** Criando reserva");
         System.out.println("** Publicando em reserva criada");
-        publicaEmReservaCriada("Teste");
+
+        if(client.reserva != null){
+            System.out.println("** Criando reserva");
+            System.out.println("** Publicando em reserva criada");
+            publicaEmReservaCriada(
+                    client.reserva.toString()
+                            .replace(":","=")
+                            .replace(",", ".")
+            );
+        }
+        else{
+            System.out.println("** Cancelando criação de reserva");
+        }
     }
 
     private static void publicaEmReservaCriada(String message){
