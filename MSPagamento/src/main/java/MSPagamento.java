@@ -10,6 +10,8 @@ import java.util.concurrent.TimeoutException;
 
 import  java.security.*;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 public class MSPagamento {
     private static final String HOST = "localhost";
     private static final String RESERVA_CRIADA_RK = "reserva_criada";
@@ -45,11 +47,11 @@ public class MSPagamento {
             if(validaPagamento()){
                 System.out.println("** Pagamento validado");
                 System.out.println("** Publicando em pagamento aprovado");
-                publicaEmPagamentoAprovado(assinaMensagem(("Pagamento Aprovado")));
+                publicaEmPagamentoAprovado(assinaMensagem(message +" | Pagamento Aprovado"));
             }else {
                 System.out.println("** Pagamento não validado");
                 System.out.println("** Publicando em pagamento recusado");
-                publicaEmPagamentoRecusado(assinaMensagem("Pagamento Recusado"));
+                publicaEmPagamentoRecusado(assinaMensagem(message +" | Pagamento Recusado"));
             }
         };
 
@@ -72,7 +74,7 @@ public class MSPagamento {
     }
 
     private static boolean validaPagamento(){
-        return true;
+        return ThreadLocalRandom.current().nextInt(1, 11) > 2;
     }
 
     private static void publicaEmPagamentoAprovado(String message) {
