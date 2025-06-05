@@ -2,6 +2,8 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
+import org.springframework.boot.SpringApplication;
+import restapp.RestApp;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -30,6 +32,8 @@ public class MSReserva {
     private static Connection connection;
 
     public static void main(String [] args) throws Exception{
+        SpringApplication.run(RestApp.class, args);
+
         ConnectionFactory factory = new ConnectionFactory();
         connection = factory.newConnection();
 
