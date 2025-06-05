@@ -1,19 +1,21 @@
+package restapp.services;
+
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
-import org.springframework.boot.SpringApplication;
-import restapp.RestApp;
+import mock.ItinerarioMock;
+import restapp.DTOs.ConsultaItinerariosDTO;
+import restapp.DTOs.EfetuarReservadDTO;
+import restapp.DTOs.ItinerarioDTO;
+import restapp.utils.GetKeyFromFile;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeoutException;
+import java.util.*;
 
-public class MSReserva {
+public class ReservaService {
     private static final String HOST = "localhost";
 
     // EXCHANGE NAMES
@@ -29,18 +31,11 @@ public class MSReserva {
 
     private static final PublicKey pagamentosPublicKey = GetKeyFromFile.loadPublicKey("pagamento.pub");
 
-    private static Connection connection;
+    private ConnectionFactory factory;
+    private Connection connection;
+    private Channel channel;
 
-    public static void main(String [] args) throws Exception{
-        SpringApplication.run(RestApp.class, args);
-
-        ConnectionFactory factory = new ConnectionFactory();
-        connection = factory.newConnection();
-
-        Channel channel = connection.createChannel();
-
-        // ESCUTA
-
+    public ReservaService() throws IOException {
         String pagamento_aprovado_queue_name = channel.queueDeclare().getQueue();
         String pagamento_recusado_queue_name = channel.queueDeclare().getQueue();
         String bilhete_gerado_queue_name = channel.queueDeclare().getQueue();
@@ -73,45 +68,54 @@ public class MSReserva {
             System.out.println("** Bilhete Gerado : " + message);
         };
 
-
-
         channel.basicConsume(pagamento_aprovado_queue_name,true, PagamentoCallbackSuccess, consumerTag -> {});
         channel.basicConsume(pagamento_recusado_queue_name,true, PagamentoCallbackFailure, consumerTag -> {});
         channel.basicConsume(bilhete_gerado_queue_name,true, BilheteCallback, consumerTag -> {});
-
-        HandleClient client = new HandleClient();
-
-        client.criaReservaDoCliente();
-
-        if(client.reserva != null){
-            System.out.println("** Criando reserva");
-            System.out.println("** Publicando em reserva criada");
-            publicaEmReservaCriada(
-                    client.reserva.toString()
-                            .replace(":","=")
-                            .replace(",", ".")
-            );
-        }
-        else{
-            System.out.println("** Cancelando criação de reserva");
-        }
     }
 
-    private static void publicaEmReservaCriada(String message){
-        try(Channel channel = connection.createChannel()){
+    public ItinerarioDTO[] consultaItinerarios(ConsultaItinerariosDTO consultaItinerariosDTO){
+        List<ItinerarioDTO> itinerarios = ItinerarioMock.objects;
+        List<ItinerarioDTO> result = new ArrayList<>();
 
-            channel.exchangeDeclare(RESERVAS_EXCHANGE_NAME, "direct");
+        for(int i = 0 ; i < itinerarios.size() ; i++){
+            ItinerarioDTO itinerario = itinerarios.get(i);
+            boolean validacaoPartida = false;
+            boolean validacaoPorto = false;
+            boolean validacaoDestino = false;
 
-            channel.basicPublish(
-                    RESERVAS_EXCHANGE_NAME,
-                    RESERVA_CRIADA_RK,
-                    null,
-                    message.getBytes()
-            );
+            if(itinerario.porto_de_desembarque.equals(
+                         consultaItinerariosDTO.destino)){
+                validacaoDestino = true;
+            }
 
-        } catch (TimeoutException | IOException e) {
-            throw new RuntimeException(e);
+            if(itinerario.porto_de_embarque.equals(
+                    consultaItinerariosDTO.porto_de_embarque)){
+                validacaoPorto = true;
+            }
+
+            for(int j = 0 ; j < itinerario.datas_de_partida_disponiveis.length ; i++){
+                String data = itinerario.datas_de_partida_disponiveis[j];
+
+                if(consultaItinerariosDTO.data_de_embarque.equals(data)){
+                    validacaoPartida = true;
+                }
+            }
+
+            if(validacaoDestino && validacaoPartida && validacaoPorto){
+                result.add(itinerario);
+            }
         }
+
+
+        return result.toArray(new ItinerarioDTO[0]);
+    }
+
+    public String efetuaReserva(EfetuarReservadDTO efetuarReservadDTO){
+        return null;
+    }
+
+    public void cancelaReserva(String reserva){
+
     }
 
     private static void processaMensagemPagamento(String message, boolean success){
@@ -130,7 +134,6 @@ public class MSReserva {
         else {
             System.out.println("** Assinatura da mensagem não passou pela validação.");
         }
-
     }
 
     private static boolean validaChaves(PublicKey publicKey, byte[] signature, String message){
