@@ -81,6 +81,7 @@ public class ItinerarioMock {
 
         for (int i = 0; i < 20; i++) {
             ItinerarioDTO itinerario = new ItinerarioDTO(
+                    i,
                     datas[i],
                     navios[i],
                     portosEmbarque[i],

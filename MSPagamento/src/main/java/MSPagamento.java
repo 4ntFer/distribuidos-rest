@@ -56,6 +56,8 @@ public class MSPagamento {
         };
 
         channel.basicConsume(reservas_criadas_queue_name, true, reservaCriadaCallback, cosumerTag -> {});
+
+        publicaEmPagamentoAprovado("teste");
     }
 
     private static String assinaMensagem(String message){

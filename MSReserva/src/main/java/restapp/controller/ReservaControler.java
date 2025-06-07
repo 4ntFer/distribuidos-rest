@@ -13,10 +13,18 @@ import restapp.services.ReservaService;
 public class ReservaControler {
     private static final ReservaService reservaService = Main.reservaService;
 
-    @GetMapping
-    public ItinerarioDTO[] consultarItineararios(
+    @GetMapping("/teste")
+    public String teste() {
+        return "teste";
+    }
+
+    @PostMapping("/consulta-itinerarios")
+    public ResponseEntity<ItinerarioDTO[]> consultarItineararios(
             @RequestBody ConsultaItinerariosDTO consultaItinerariosDTO) {
-        return null;
+
+        ItinerarioDTO[] result = reservaService.consultaItinerarios(consultaItinerariosDTO);
+
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping

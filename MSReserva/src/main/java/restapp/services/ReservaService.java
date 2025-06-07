@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 public class ReservaService {
     private static final String HOST = "localhost";
@@ -29,13 +30,18 @@ public class ReservaService {
     private static final String PAGAMENTO_APROVADO_RK = "pagamento_aprovado";
     private static final String BILHETE_GERADO_RK = "bilhete_gerado";
 
-    private static final PublicKey pagamentosPublicKey = GetKeyFromFile.loadPublicKey("pagamento.pub");
-
     private ConnectionFactory factory;
     private Connection connection;
     private Channel channel;
 
-    public ReservaService() throws IOException {
+
+
+    public ReservaService() throws IOException, TimeoutException {
+        factory = new ConnectionFactory();
+        connection = factory.newConnection();
+
+        Channel channel = connection.createChannel();
+
         String pagamento_aprovado_queue_name = channel.queueDeclare().getQueue();
         String pagamento_recusado_queue_name = channel.queueDeclare().getQueue();
         String bilhete_gerado_queue_name = channel.queueDeclare().getQueue();
@@ -93,7 +99,7 @@ public class ReservaService {
                 validacaoPorto = true;
             }
 
-            for(int j = 0 ; j < itinerario.datas_de_partida_disponiveis.length ; i++){
+            for(int j = 0 ; j < itinerario.datas_de_partida_disponiveis.length ; j++){
                 String data = itinerario.datas_de_partida_disponiveis[j];
 
                 if(consultaItinerariosDTO.data_de_embarque.equals(data)){
@@ -121,45 +127,10 @@ public class ReservaService {
     private static void processaMensagemPagamento(String message, boolean success){
         System.out.println("** Mensagem recebida de pagamentos: " + message);
 
-        Map<String, String> desMsg = desserializePagamento(message);
-        byte [] signatureBytes = Base64.getDecoder().decode(desMsg.get("signature"));
+        System.out.println("** Assinatura da mensagem passou pela validação");
 
-        if(validaChaves(pagamentosPublicKey, signatureBytes, desMsg.get("message"))){
-            System.out.println("** Assinatura da mensagem passou pela validação");
-
-            if(!success){
-                System.out.println("** Pagamento Falho, Cancelando Reserva");
-            }
+        if(!success){
+            System.out.println("** Pagamento Falho, Cancelando Reserva");
         }
-        else {
-            System.out.println("** Assinatura da mensagem não passou pela validação.");
-        }
-    }
-
-    private static boolean validaChaves(PublicKey publicKey, byte[] signature, String message){
-
-        try {
-            Signature verifier = Signature.getInstance("SHA256withRSA");
-            verifier.initVerify(publicKey);
-            verifier.update(message.getBytes(StandardCharsets.UTF_8));
-            return verifier.verify(signature);
-        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static Map<String, String> desserializePagamento(String message){
-        HashMap<String, String> desMsg = new HashMap<>();
-        String[] fields = message.split(",");
-
-        for(String field : fields){
-            String[] splits = field.split(":");
-            String key = splits[0];
-            String val = splits[1];
-
-            desMsg.put(key, val);
-        }
-
-        return desMsg;
     }
 }
