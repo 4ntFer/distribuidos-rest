@@ -49,11 +49,13 @@
     </style>
 </head>
 <body>
+<script src="/js/sse.js"></script>
 <div class="container">
     <h1>Bem-vindo ao Sistema</h1>
 
     <label for="username">Nome de usuário:</label>
     <input type="text" id="username" name="username" placeholder="Digite seu nome de usuário" />
+    <button onclick="login()">Logar</button>
 
     <div class="menu">
         <a href="/itinerarios">Consultar Itinerários</a>
@@ -63,5 +65,12 @@
         <a href="/notificacoes/cancelar">Cancelar Interesse em Promoções</a>
     </div>
 </div>
+
+<script>
+    function login(){
+        const username = document.getElementById("username").value
+        localStorage.setItem("username", username)
+    }
+</script>
 </body>
 </html>

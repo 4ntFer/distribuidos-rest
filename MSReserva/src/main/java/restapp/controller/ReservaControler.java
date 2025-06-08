@@ -37,9 +37,9 @@ public class ReservaControler {
 
     @PostMapping
     public String efetuarReserva(
-            @RequestBody ReservaDTO reservaDTO) {
+            @RequestHeader String username, @RequestBody ReservaDTO reservaDTO) {
 
-        return reservaService.efetuaReserva(reservaDTO);
+        return reservaService.efetuaReserva(username, reservaDTO);
     }
 
     @DeleteMapping("{id}")

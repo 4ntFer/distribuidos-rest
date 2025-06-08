@@ -5,6 +5,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import restapp.DTOs.ConsultaItinerariosDTO;
 import restapp.DTOs.ItinerarioDTO;
 import restapp.DTOs.ReservaDTO;
@@ -33,8 +34,11 @@ public class ReservaService {
     private WebClient itinearioWebClient = WebClient.builder().baseUrl("http://localhost:8081/api/itinerarios/").build();
     private WebClient pagamentoClient = WebClient.builder().baseUrl("http://localhost:8082/api/pagamentos").build();
 
+    private final List<ReservaDTO> reservas = new ArrayList<ReservaDTO>();
+    private final Map<String, List<Integer>> transacoes = new HashMap<>();
+    private final Map<Integer, String> usuarioAssociadoTransacao = new HashMap<>();
 
-    private static final List<ReservaDTO> reservas = new ArrayList<ReservaDTO>();
+    private final Map<String, SseEmitter> sseEmitterManager = new HashMap<>();
 
     public ReservaService() throws IOException, TimeoutException {
         factory = new ConnectionFactory();
@@ -98,7 +102,7 @@ public class ReservaService {
                 .block();
     }
 
-    public String efetuaReserva(ReservaDTO reservaDTO){
+    public String efetuaReserva(String username, ReservaDTO reservaDTO){
 
         //TODO: validação da reserva
 
@@ -121,25 +125,64 @@ public class ReservaService {
         valor_string = valor_string.replace(","," ");
         Float valor_transacao = Float.parseFloat(valor_string);
 
-        return pagamentoClient.post()
+        String linkPagamentp = pagamentoClient.post()
                 .uri("/gera-transacao")
                 .bodyValue(valor_transacao)                     // o objeto será convertido para JSON automaticamente
                 .retrieve()
                 .bodyToMono(String.class)           // resposta esperada
                 .block();
+
+        int transacao = Integer.parseInt(linkPagamentp.split("\"trasacao\":")[1].split(",")[0]);
+
+        if(!transacoes.containsKey(username)){
+            transacoes.put(username, new ArrayList<Integer>());
+        }
+
+        transacoes.get(username).add(transacao);
+
+        usuarioAssociadoTransacao.put(transacao, username);
+
+        return linkPagamentp;
     }
 
     public void cancelaReserva(String reserva){
 
     }
 
-    private static void processaMensagemPagamento(String message, boolean success){
-        System.out.println("** Mensagem recebida de pagamentos: " + message);
+    public SseEmitter getSseEmitter(String username){
+        if(!sseEmitterManager.containsKey(username)){
+            sseEmitterManager.put(username, new SseEmitter(0L));
 
-        System.out.println("** Assinatura da mensagem passou pela validação");
+            sseEmitterManager.get(username).onCompletion(() -> sseEmitterManager.remove(username));
+            sseEmitterManager.get(username).onTimeout(() -> sseEmitterManager.remove(username));
+            sseEmitterManager.get(username).onError((e) -> sseEmitterManager.remove(username));
+        }
 
-        if(!success){
-            System.out.println("** Pagamento Falho, Cancelando Reserva");
+        return sseEmitterManager.get(username);
+    }
+
+    private void notifyClient(String event, String data, String clientUsername){
+        SseEmitter emitter = sseEmitterManager.get(clientUsername);
+
+        if(emitter != null){
+            try {
+                emitter.send(SseEmitter.event()
+                        .name(event)
+                        .data(data));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void processaMensagemPagamento(String message, boolean success){
+        int transacao = Integer.parseInt(message);
+        String username = usuarioAssociadoTransacao.get(transacao);
+
+        if(success){
+            notifyClient("pagamento-aprovado", message, username);
+        }else{
+            notifyClient("pagamento-recusado", message, username);
         }
     }
 
