@@ -25,7 +25,7 @@ public class MSPagamento {
 
     private static Connection connection;
 
-    public static void main(String [] args) throws Exception{
+    public static void mainold(String [] args) throws Exception{
         ConnectionFactory factory = new ConnectionFactory();
         connection = factory.newConnection();
 

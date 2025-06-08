@@ -10,7 +10,15 @@
         <option value="$PROJECT_DIR$/MSReserva/pom.xml" />
         <option value="$PROJECT_DIR$/MSPagamento/pom.xml" />
         <option value="$PROJECT_DIR$/MSItinerarios/pom.xml" />
+        <option value="$PROJECT_DIR$/ExternoPagamento/pom.xml" />
+        <option value="$PROJECT_DIR$/PagamentoExterno/pom.xml" />
+        <option value="$PROJECT_DIR$/Externo/pom.xml" />
       </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/ExternoPagamento/pom.xml" />
+      </set>
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="ms-21" project-jdk-type="JavaSDK">

@@ -31,6 +31,8 @@ public class ReservaService {
     private final  Connection connection;
 
     private WebClient itinearioWebClient = WebClient.builder().baseUrl("http://localhost:8081/api/itinerarios/").build();
+    private WebClient pagamentoClient = WebClient.builder().baseUrl("http://localhost:8082/api/pagamentos").build();
+
 
     private static final List<ReservaDTO> reservas = new ArrayList<ReservaDTO>();
 
@@ -80,7 +82,7 @@ public class ReservaService {
     public ItinerarioDTO[] consultaItinerarios(ConsultaItinerariosDTO consultaItinerariosDTO){
 
         return itinearioWebClient.post()
-                .uri("/consulta") //TODO: url real
+                .uri("/consulta")
                 .bodyValue(consultaItinerariosDTO)                     // o objeto será convertido para JSON automaticamente
                 .retrieve()
                 .bodyToMono(ItinerarioDTO[].class)           // resposta esperada
@@ -99,9 +101,23 @@ public class ReservaService {
             throw new RuntimeException(e);
         }
 
-       // TODO: Faz requisição de link de pagamento a MSPagamento
+        ItinerarioDTO itinerarioDTO[] = itinearioWebClient.get()
+                .uri("/consulta")                   // o objeto será convertido para JSON automaticamente
+                .retrieve()
+                .bodyToMono(ItinerarioDTO[].class)           // resposta esperada
+                .block();
 
-        return "link";
+        String valor_string = itinerarioDTO[reservaDTO.itinerario].valor_por_pessoa.split(" ")[1];
+        valor_string = valor_string.replace(".","");
+        valor_string = valor_string.replace(","," ");
+        Float valor_transacao = Float.parseFloat(valor_string);
+
+        return pagamentoClient.post()
+                .uri("/gera-transacao")
+                .bodyValue(valor_transacao)                     // o objeto será convertido para JSON automaticamente
+                .retrieve()
+                .bodyToMono(String.class)           // resposta esperada
+                .block();
     }
 
     public void cancelaReserva(String reserva){

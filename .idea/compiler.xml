@@ -6,19 +6,33 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="Assinante" />
         <module name="MSReserva" />
-        <module name="MSBilhete" />
         <module name="MSPagamento" />
         <module name="MSItinerarios" />
+        <module name="Assinante" />
+        <module name="Externo" />
+        <module name="MSReserva (1)" />
+        <module name="MSBilhete" />
+        <module name="Externo (1)" />
         <module name="Marketing" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="ExternoPagamento (1)" target="17" />
+      <module name="MSPagamento (1)" target="1.8" />
+      <module name="PagamentoExterno" target="17" />
+      <module name="PagamentoExterno (1)" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Externo" options="-parameters" />
+      <module name="ExternoPagamento (1)" options="-parameters" />
       <module name="MSItinerarios" options="-parameters" />
+      <module name="MSPagamento" options="-parameters" />
       <module name="MSReserva" options="-parameters" />
+      <module name="MSReserva (1)" options="-parameters" />
+      <module name="PagamentoExterno" options="-parameters" />
     </option>
   </component>
 </project>

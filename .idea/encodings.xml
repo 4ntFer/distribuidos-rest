@@ -3,6 +3,10 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/Assinante/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Assinante/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Externo/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Externo/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ExternoPagamento/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/ExternoPagamento/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/MSBilhete/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/MSBilhete/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/MSItinerarios/src/main/java" charset="UTF-8" />
@@ -13,5 +17,7 @@
     <file url="file://$PROJECT_DIR$/MSReserva/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Marketing/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Marketing/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/PagamentoExterno/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/PagamentoExterno/src/main/resources" charset="UTF-8" />
   </component>
 </project>
