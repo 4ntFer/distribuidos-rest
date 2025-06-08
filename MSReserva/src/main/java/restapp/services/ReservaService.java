@@ -89,6 +89,15 @@ public class ReservaService {
                 .block();
     }
 
+    public ItinerarioDTO[] consultaItinerarios(){
+
+        return itinearioWebClient.get()
+                .uri("/consulta")                    // o objeto será convertido para JSON automaticamente
+                .retrieve()
+                .bodyToMono(ItinerarioDTO[].class)           // resposta esperada
+                .block();
+    }
+
     public String efetuaReserva(ReservaDTO reservaDTO){
 
         //TODO: validação da reserva

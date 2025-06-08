@@ -27,6 +27,14 @@ public class ReservaControler {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/consulta-itinerarios")
+    public ResponseEntity<ItinerarioDTO[]> consultarItineararios() {
+
+        ItinerarioDTO[] result = reservaService.consultaItinerarios();
+
+        return ResponseEntity.ok(result);
+    }
+
     @PostMapping
     public String efetuarReserva(
             @RequestBody ReservaDTO reservaDTO) {

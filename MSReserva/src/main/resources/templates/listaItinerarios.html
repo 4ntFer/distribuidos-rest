@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Itinerários</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background-color: white;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+<h1>Itinerários Disponíveis</h1>
+
+<table id="tabela-itinerarios">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Navio</th>
+        <th>Partidas</th>
+        <th>Embarque</th>
+        <th>Desembarque</th>
+        <th>Lugares Visitados</th>
+        <th>Noites</th>
+        <th>Valor</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Conteúdo será preenchido via AJAX -->
+    </tbody>
+</table>
+
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            url: 'http://localhost:8080/api/reserva/consulta-itinerarios',
+            type: 'GET',
+            dataType: 'json',
+            success: function (itinerarios) {
+                const $tbody = $('#tabela-itinerarios tbody');
+                $tbody.empty();
+
+                itinerarios.forEach(function (it) {
+                    const linha = `
+                        <tr>
+                            <td>${it.id}</td>
+                            <td>${it.nome_do_navio}</td>
+                            <td>${it.datas_de_partida_disponiveis.join(', ')}</td>
+                            <td>${it.porto_de_embarque}</td>
+                            <td>${it.porto_de_desembarque}</td>
+                            <td>${it.lugares_visitados}</td>
+                            <td>${it.numero_de_noites}</td>
+                            <td>${it.valor_por_pessoa}</td>
+                        </tr>
+                    `;
+                    $tbody.append(linha);
+                });
+            },
+            error: function () {
+                alert('Erro ao carregar os itinerários.');
+            }
+        });
+    });
+</script>
+</body>
+</html>

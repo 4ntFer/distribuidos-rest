@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Reserva de Itinerário</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 40px;
+          background-color: #f4f4f4;
+        }
+        h1 {
+          text-align: center;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        thead th, tbody td {
+          width: 150px;
+          padding: 12px;
+          text-align: left;
+          border: 1px solid #ccc;
+        }
+
+        thead {
+          background-color: #007bff;
+          color: white;
+          display: table;
+          width: 100%;
+          table-layout: fixed;
+        }
+
+        tbody {
+          display: block;
+          height: 300px;
+          overflow-y: auto;
+          width: 100%;
+        }
+
+        tbody tr {
+          display: table;
+          width: 100%;
+          table-layout: fixed;
+        }
+
+        th, td {
+          border: 1px solid #ccc;
+          padding: 12px;
+          text-align: left;
+        }
+        th {
+          background-color: #007bff;
+          color: white;
+        }
+        tr:hover {
+          background-color: #eef;
+        }
+        .form-reserva {
+          margin-top: 40px;
+          padding: 20px;
+          background-color: white;
+          border-radius: 8px;
+          max-width: 500px;
+        }
+        label {
+          display: block;
+          margin-top: 10px;
+          font-weight: bold;
+        }
+        input, select {
+          width: 100%;
+          padding: 8px;
+          margin-top: 4px;
+        }
+        button {
+          margin-top: 20px;
+          padding: 10px 20px;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+        }
+        button:hover {
+          background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Escolha um Itinerário para Reservar</h1>
+
+<table id="tabela-itinerarios">
+    <thead>
+    <tr>
+        <th>Selecionar</th>
+        <th>ID</th>
+        <th>Navio</th>
+        <th>Partidas</th>
+        <th>Embarque</th>
+        <th>Desembarque</th>
+        <th>Lugares</th>
+        <th>Noites</th>
+        <th>Valor</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<div class="form-reserva">
+    <h2>Efetuar Reserva</h2>
+    <form id="form-reserva">
+        <label for="data">Data de Embarque</label>
+        <select id="data" name="data_de_embarque" required>
+            <option value="">Selecione um itinerário primeiro</option>
+        </select>
+
+        <label for="passageiros">Número de Passageiros</label>
+        <input type="number" id="passageiros" name="numero_de_passageiros" required min="1">
+
+        <label for="cabines">Número de Cabines</label>
+        <input type="number" id="cabines" name="numero_de_cabines" required min="1">
+
+        <input type="hidden" id="itinerario-id" name="itinerario">
+
+        <button type="submit">Reservar</button>
+    </form>
+
+    <div id="link-pagamento" style="margin-top: 20px; font-weight: bold;"></div>
+</div>
+
+<script>
+    let itinerarios = [];
+
+    $(document).ready(function () {
+      $.ajax({
+        url: 'http://localhost:8080/api/reserva/consulta-itinerarios',
+        method: 'GET',
+        success: function (data) {
+          itinerarios = data;
+          const tbody = $('#tabela-itinerarios tbody');
+          data.forEach(it => {
+            const linha = `
+              <tr>
+                <td><input type="radio" name="itinerario-select" value="${it.id}"></td>
+                <td>${it.id}</td>
+                <td>${it.nome_do_navio}</td>
+                <td>${it.datas_de_partida_disponiveis.join(', ')}</td>
+                <td>${it.porto_de_embarque}</td>
+                <td>${it.porto_de_desembarque}</td>
+                <td>${it.lugares_visitados}</td>
+                <td>${it.numero_de_noites}</td>
+                <td>${it.valor_por_pessoa}</td>
+              </tr>
+            `;
+            tbody.append(linha);
+          });
+        },
+        error: function () {
+          alert('Erro ao carregar itinerários');
+        }
+      });
+
+      $(document).on('change', 'input[name="itinerario-select"]', function () {
+        const idSelecionado = $(this).val();
+        $('#itinerario-id').val(idSelecionado);
+
+        const itinerario = itinerarios.find(it => it.id == idSelecionado);
+        const $dataSelect = $('#data');
+        $dataSelect.empty();
+        itinerario.datas_de_partida_disponiveis.forEach(data => {
+          $dataSelect.append(`<option value="${data}">${data}</option>`);
+        });
+      });
+
+      $('#form-reserva').on('submit', function (e) {
+        e.preventDefault();
+
+        const reserva = {
+          data_de_embarque: $('#data').val(),
+          numero_de_passageiros: parseInt($('#passageiros').val()),
+          numero_de_cabines: parseInt($('#cabines').val()),
+          itinerario: parseInt($('#itinerario-id').val())
+        };
+
+        $.ajax({
+          url: 'http://localhost:8080/api/reserva',
+          method: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify(reserva),
+          success: function (resposta) {
+            const linkHtml = `
+              Reserva efetuada com sucesso!<br>
+              Link de pagamento: <br>
+              <a href="${JSON.parse(resposta).link}" target="_blank">${JSON.parse(resposta).link}</a>
+            `;
+            $('#link-pagamento').html(linkHtml);
+            $('#form-reserva')[0].reset();
+            $('#data').html('<option>Selecione um itinerário primeiro</option>');
+          },
+          error: function () {
+            alert('Erro ao enviar reserva.');
+          }
+        });
+      });
+    });
+</script>
+
+</body>
+</html>

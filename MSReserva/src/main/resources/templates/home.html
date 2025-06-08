@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu de Reservas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            margin: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 25px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        .menu a {
+            display: block;
+            margin: 10px 0;
+            padding: 12px;
+            text-align: center;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+        .menu a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Bem-vindo ao Sistema</h1>
+
+    <label for="username">Nome de usuário:</label>
+    <input type="text" id="username" name="username" placeholder="Digite seu nome de usuário" />
+
+    <div class="menu">
+        <a href="/itinerarios">Consultar Itinerários</a>
+        <a href="/efetuar-reserva">Efetuar Reserva</a>
+        <a href="/reservas/cancelar">Cancelar Reserva</a>
+        <a href="/notificacoes/registrar">Registrar Interesse em Promoções</a>
+        <a href="/notificacoes/cancelar">Cancelar Interesse em Promoções</a>
+    </div>
+</div>
+</body>
+</html>
