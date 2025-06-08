@@ -23,7 +23,7 @@ public class PagamentosController {
     public ResponseEntity<String> notificaTransacao(
             @RequestBody TransacaoDTO transacaoDTO
     ){
-        // TODO:
+        pagamentoService.processaNotificacaoDeTransacao(transacaoDTO);
 
         return ResponseEntity.ok("");
     }

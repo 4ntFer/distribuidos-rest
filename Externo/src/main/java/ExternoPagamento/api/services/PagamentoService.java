@@ -31,7 +31,7 @@ public class PagamentoService {
     public TransacaoGeradaDTO criaLinkParaTransacao(TransacaoDTO transacaoDto){
         return new TransacaoGeradaDTO(
                 transacaoDto.id,
-                "https://localhost:8083/api/processa-pagamento/" + transacaoDto.id);
+                "http://localhost:8083/api/processa-pagamentos/" + transacaoDto.id);
     }
 
     public TransacaoDTO notificaTransacao(int id, boolean flag){

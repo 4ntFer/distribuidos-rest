@@ -6,10 +6,7 @@ import ExternoPagamento.Main;
 import ExternoPagamento.api.DTOs.TransacaoDTO;
 import ExternoPagamento.api.DTOs.TransacaoGeradaDTO;
 import ExternoPagamento.api.services.PagamentoService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/processa-pagamentos")
@@ -26,9 +23,9 @@ public class PagamentosController {
         return transacaoGeradaDTO;
     }
 
-    @PostMapping("/link/{id}")
-    public TransacaoDTO getLinkTransacao(
-            int id, @RequestBody Boolean flag
+    @PostMapping("/{id}")
+    public TransacaoDTO processa(
+            @PathVariable Integer id, @RequestBody Boolean flag
     ){
         return pagamentoService.notificaTransacao(id, flag);
     }
