@@ -10,12 +10,14 @@
         <module name="MSReserva" />
         <module name="MSBilhete" />
         <module name="MSPagamento" />
+        <module name="MSItinerarios" />
         <module name="Marketing" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="MSItinerarios" options="-parameters" />
       <module name="MSReserva" options="-parameters" />
     </option>
   </component>

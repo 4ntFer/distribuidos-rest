@@ -1,6 +1,6 @@
-package mock;
+package MSItinerarios.api.services.mock;
 
-import restapp.DTOs.ItinerarioDTO;
+import MSItinerarios.api.DTOs.ItinerarioDTO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,7 +88,8 @@ public class ItinerarioMock {
                     portosDesembarque[i],
                     lugares[i],
                     noites[i],
-                    valores[i]
+                    valores[i],
+                    40
             );
             lista.add(itinerario);
         }

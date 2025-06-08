@@ -4,7 +4,7 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
-import mock.ItinerarioMock;
+import org.springframework.web.reactive.function.client.WebClient;
 import restapp.DTOs.ConsultaItinerariosDTO;
 import restapp.DTOs.EfetuarReservadDTO;
 import restapp.DTOs.ItinerarioDTO;
@@ -34,7 +34,8 @@ public class ReservaService {
     private Connection connection;
     private Channel channel;
 
-
+    // TODO: baseurl
+    private WebClient itinearioWebClient = WebClient.builder().baseUrl("http://localhost:8081/api/itinerarios/").build();
 
     public ReservaService() throws IOException, TimeoutException {
         factory = new ConnectionFactory();
@@ -80,40 +81,13 @@ public class ReservaService {
     }
 
     public ItinerarioDTO[] consultaItinerarios(ConsultaItinerariosDTO consultaItinerariosDTO){
-        List<ItinerarioDTO> itinerarios = ItinerarioMock.objects;
-        List<ItinerarioDTO> result = new ArrayList<>();
 
-        for(int i = 0 ; i < itinerarios.size() ; i++){
-            ItinerarioDTO itinerario = itinerarios.get(i);
-            boolean validacaoPartida = false;
-            boolean validacaoPorto = false;
-            boolean validacaoDestino = false;
-
-            if(itinerario.porto_de_desembarque.equals(
-                         consultaItinerariosDTO.destino)){
-                validacaoDestino = true;
-            }
-
-            if(itinerario.porto_de_embarque.equals(
-                    consultaItinerariosDTO.porto_de_embarque)){
-                validacaoPorto = true;
-            }
-
-            for(int j = 0 ; j < itinerario.datas_de_partida_disponiveis.length ; j++){
-                String data = itinerario.datas_de_partida_disponiveis[j];
-
-                if(consultaItinerariosDTO.data_de_embarque.equals(data)){
-                    validacaoPartida = true;
-                }
-            }
-
-            if(validacaoDestino && validacaoPartida && validacaoPorto){
-                result.add(itinerario);
-            }
-        }
-
-
-        return result.toArray(new ItinerarioDTO[0]);
+        return itinearioWebClient.post()
+                .uri("/consulta") //TODO: url real
+                .bodyValue(consultaItinerariosDTO)                     // o objeto será convertido para JSON automaticamente
+                .retrieve()
+                .bodyToMono(ItinerarioDTO[].class)           // resposta esperada
+                .block();
     }
 
     public String efetuaReserva(EfetuarReservadDTO efetuarReservadDTO){
@@ -133,4 +107,6 @@ public class ReservaService {
             System.out.println("** Pagamento Falho, Cancelando Reserva");
         }
     }
+
+
 }
