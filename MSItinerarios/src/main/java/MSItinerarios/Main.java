@@ -5,13 +5,15 @@ import MSItinerarios.api.services.ItinerariosService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 public class Main {
     public static ItinerariosService itinerariosService;
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws IOException, TimeoutException {
         itinerariosService = new ItinerariosService();
 
         Map<String, Object> props = new HashMap<>();

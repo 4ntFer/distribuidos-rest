@@ -2,14 +2,53 @@ package MSItinerarios.api.services;
 
 import MSItinerarios.api.DTOs.ConsultaItinerariosDTO;
 import MSItinerarios.api.DTOs.ItinerarioDTO;
-import MSItinerarios.api.DTOs.ReservaDTO;
 import MSItinerarios.api.services.mock.ItinerarioMock;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.DeliverCallback;
+import restapp.DTOs.ReservaDTO;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 public class ItinerariosService {
     private static final List<ItinerarioDTO> itinerarios = ItinerarioMock.objects;
+
+    private static final String RESERVAS_EXCHANGE_NAME = "reservas";
+
+    private static final String RESERVA_CRIADA_RK = "reserva_criada";
+
+    private final ConnectionFactory factory;
+    private final Connection connection;
+
+    public ItinerariosService() throws IOException, TimeoutException {
+        factory = new ConnectionFactory();
+        connection = factory.newConnection();
+
+        Channel channel = connection.createChannel();
+
+        String reserva_criada_queue_name = channel.queueDeclare().getQueue();
+
+        channel.exchangeDeclare(RESERVAS_EXCHANGE_NAME, "direct");
+        channel.queueBind(reserva_criada_queue_name,
+                RESERVAS_EXCHANGE_NAME,
+                RESERVA_CRIADA_RK);
+
+        DeliverCallback reservaCriadaCallback = (consumerTag, delivery) -> {
+            try {
+                reservaCriadaHandle(delivery.getBody());
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        };
+
+        channel.basicConsume(reserva_criada_queue_name,true, reservaCriadaCallback, consumerTag -> {});
+    }
 
     public ItinerarioDTO[] consultaItinerarios(ConsultaItinerariosDTO consultaItinerariosDTO){
         List<ItinerarioDTO> result = new ArrayList<>();
@@ -47,8 +86,16 @@ public class ItinerariosService {
         return result.toArray(new ItinerarioDTO[0]);
     }
 
-    public void reservaCriadaHandle(ReservaDTO reservaCriada){
-        ItinerarioDTO itinerario = itinerarios.get(reservaCriada.itinerario);
+    private void reservaCriadaHandle(byte[] massage) throws IOException, ClassNotFoundException {
+        ReservaDTO reservaCriada;
+        ItinerarioDTO itinerario;
+
+        ByteArrayInputStream bis = new ByteArrayInputStream(massage);
+        ObjectInputStream in = new ObjectInputStream(bis);
+
+        reservaCriada = (ReservaDTO) in.readObject();
+
+        itinerario = itinerarios.get(reservaCriada.itinerario);
         itinerario.cabines_disponiveis--;
     }
 
@@ -56,7 +103,7 @@ public class ItinerariosService {
         return itinerarios.toArray(new ItinerarioDTO[0]);
     }
 
-    public void reservaCancelardaHandle(ReservaDTO reservaCancelada){
+    public void reservaCanceladaHandle(ReservaDTO reservaCancelada){
         ItinerarioDTO itinerario = itinerarios.get(reservaCancelada.itinerario);
         itinerario.cabines_disponiveis++;
     }

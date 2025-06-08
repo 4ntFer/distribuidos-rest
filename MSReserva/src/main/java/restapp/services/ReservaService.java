@@ -6,13 +6,10 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 import org.springframework.web.reactive.function.client.WebClient;
 import restapp.DTOs.ConsultaItinerariosDTO;
-import restapp.DTOs.EfetuarReservadDTO;
 import restapp.DTOs.ItinerarioDTO;
-import restapp.utils.GetKeyFromFile;
+import restapp.DTOs.ReservaDTO;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
 
@@ -30,12 +27,12 @@ public class ReservaService {
     private static final String PAGAMENTO_APROVADO_RK = "pagamento_aprovado";
     private static final String BILHETE_GERADO_RK = "bilhete_gerado";
 
-    private ConnectionFactory factory;
-    private Connection connection;
-    private Channel channel;
+    private final ConnectionFactory factory;
+    private final  Connection connection;
 
-    // TODO: baseurl
     private WebClient itinearioWebClient = WebClient.builder().baseUrl("http://localhost:8081/api/itinerarios/").build();
+
+    private static final List<ReservaDTO> reservas = new ArrayList<ReservaDTO>();
 
     public ReservaService() throws IOException, TimeoutException {
         factory = new ConnectionFactory();
@@ -90,8 +87,21 @@ public class ReservaService {
                 .block();
     }
 
-    public String efetuaReserva(EfetuarReservadDTO efetuarReservadDTO){
-        return null;
+    public String efetuaReserva(ReservaDTO reservaDTO){
+
+        //TODO: validação da reserva
+
+        reservas.add(reservaDTO);
+
+        try {
+            publicaEmReservaCriada(reservaDTO.serialize());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+       // TODO: Faz requisição de link de pagamento a MSPagamento
+
+        return "link";
     }
 
     public void cancelaReserva(String reserva){
@@ -108,5 +118,37 @@ public class ReservaService {
         }
     }
 
+    private void publicaEmReservaCriada(byte[] message){
+        try(Channel channel = connection.createChannel()){
 
+            channel.exchangeDeclare(RESERVAS_EXCHANGE_NAME, "direct");
+
+            channel.basicPublish(
+                    RESERVAS_EXCHANGE_NAME,
+                    RESERVA_CRIADA_RK,
+                    null,
+                    message
+            );
+
+        } catch (TimeoutException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void publicaEmReservaCancelada(byte[] message){
+        try(Channel channel = connection.createChannel()){
+
+            channel.exchangeDeclare(RESERVAS_EXCHANGE_NAME, "direct");
+
+            channel.basicPublish(
+                    RESERVAS_EXCHANGE_NAME,
+                    RESERVA_CRIADA_RK,
+                    null,
+                    message
+            );
+
+        } catch (TimeoutException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
