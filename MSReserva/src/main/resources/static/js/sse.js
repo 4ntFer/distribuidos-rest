@@ -14,4 +14,8 @@ if(username){
     eventSource.addEventListener("pagamento-recusado", (event) => {
             alert(`Pagamento da transação ${event.data} foi recusado!`)
     })
+
+    eventSource.addEventListener("promocao", (event) => {
+                alert(`Oferta Recebida: ${event.data}`)
+        })
 }

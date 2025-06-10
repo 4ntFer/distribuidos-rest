@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <head>
     <meta charset="UTF-8">
     <title>Menu de Reservas</title>
@@ -61,8 +62,8 @@
         <a href="/itinerarios">Consultar Itinerários</a>
         <a href="/efetuar-reserva">Efetuar Reserva</a>
         <a href="/cancelar-reserva">Cancelar Reserva</a>
-        <a href="/notificacoes/registrar">Registrar Interesse em Promoções</a>
-        <a href="/notificacoes/cancelar">Cancelar Interesse em Promoções</a>
+        <a onclick="registraInteresse()" href="#">Registrar Interesse em Promoções</a>
+        <a onclick="cancelaInteresse()" href="#">Cancelar Interesse em Promoções</a>
     </div>
 </div>
 
@@ -70,6 +71,32 @@
     function login(){
         const username = document.getElementById("username").value
         localStorage.setItem("username", username)
+    }
+
+    function registraInteresse(){
+        $.ajax({
+            url: `http://localhost:8080/api/promocoes/registrar-interesse`,
+            method: 'GET',
+            headers:{
+                "username": localStorage.getItem("username")
+            },
+            error: function () {
+              alert('Erro ao registrar interresse');
+            }
+        });
+    }
+
+    function cancelaInteresse(){
+        $.ajax({
+            url: `http://localhost:8080/api/promocoes/cancelar-interesse`,
+            method: 'GET',
+            headers:{
+                "username": localStorage.getItem("username")
+            },
+            error: function () {
+              alert('Erro ao cancelar interresse');
+            }
+        });
     }
 </script>
 </body>

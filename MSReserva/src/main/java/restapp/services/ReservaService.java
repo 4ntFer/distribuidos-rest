@@ -1,5 +1,6 @@
 package restapp.services;
 
+import MSReserva.Main;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -40,7 +41,7 @@ public class ReservaService {
     private final Map<String, List<Integer>> transacoes = new HashMap<>();
     private final Map<Integer, String> usuarioAssociadoTransacao = new HashMap<>();
 
-    private final Map<String, SseEmitter> sseEmitterManager = new HashMap<>();
+    private final SseService sseService = Main.sseService;
 
     public ReservaService() throws IOException, TimeoutException {
         factory = new ConnectionFactory();
@@ -182,20 +183,8 @@ public class ReservaService {
         }
     }
 
-    public SseEmitter getSseEmitter(String username){
-        if(!sseEmitterManager.containsKey(username)){
-            sseEmitterManager.put(username, new SseEmitter(0L));
-
-            sseEmitterManager.get(username).onCompletion(() -> sseEmitterManager.remove(username));
-            sseEmitterManager.get(username).onTimeout(() -> sseEmitterManager.remove(username));
-            sseEmitterManager.get(username).onError((e) -> sseEmitterManager.remove(username));
-        }
-
-        return sseEmitterManager.get(username);
-    }
-
     private void notifyClient(String event, String data, String clientUsername){
-        SseEmitter emitter = sseEmitterManager.get(clientUsername);
+        SseEmitter emitter = sseService.getSseEmitter(clientUsername);
 
         if(emitter != null){
             try {
