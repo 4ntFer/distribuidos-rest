@@ -19,4 +19,9 @@ public class ClientController {
     public String reserva(){
         return "efetuaReserva";
     }
+
+    @GetMapping("/cancelar-reserva")
+    public String cancelar_reserva(){
+        return "cancelarReserva";
+    }
 }

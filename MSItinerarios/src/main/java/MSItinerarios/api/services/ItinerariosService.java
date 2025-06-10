@@ -22,6 +22,7 @@ public class ItinerariosService {
     private static final String RESERVAS_EXCHANGE_NAME = "reservas";
 
     private static final String RESERVA_CRIADA_RK = "reserva_criada";
+    private static final String RESERVA_CANCELADA_RK = "reserva_cancelada";
 
     private final ConnectionFactory factory;
     private final Connection connection;
@@ -33,11 +34,17 @@ public class ItinerariosService {
         Channel channel = connection.createChannel();
 
         String reserva_criada_queue_name = channel.queueDeclare().getQueue();
+        String reserva_cancelada_queue_name = channel.queueDeclare().getQueue();
 
         channel.exchangeDeclare(RESERVAS_EXCHANGE_NAME, "direct");
+
         channel.queueBind(reserva_criada_queue_name,
                 RESERVAS_EXCHANGE_NAME,
                 RESERVA_CRIADA_RK);
+
+        channel.queueBind(reserva_cancelada_queue_name,
+                RESERVAS_EXCHANGE_NAME,
+                RESERVA_CANCELADA_RK);
 
         DeliverCallback reservaCriadaCallback = (consumerTag, delivery) -> {
             try {
@@ -47,6 +54,15 @@ public class ItinerariosService {
             }
         };
 
+        DeliverCallback reservaCanceladaCallback = (consumerTag, delivery) -> {
+            try {
+                reservaCanceladaHandle(delivery.getBody());
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        };
+
+        channel.basicConsume(reserva_cancelada_queue_name,true, reservaCanceladaCallback, consumerTag -> {});
         channel.basicConsume(reserva_criada_queue_name,true, reservaCriadaCallback, consumerTag -> {});
     }
 
@@ -96,15 +112,23 @@ public class ItinerariosService {
         reservaCriada = (ReservaDTO) in.readObject();
 
         itinerario = itinerarios.get(reservaCriada.itinerario);
-        itinerario.cabines_disponiveis--;
+        itinerario.cabines_disponiveis -= reservaCriada.numero_de_cabines;
+    }
+
+    private void reservaCanceladaHandle(byte[] massage) throws IOException, ClassNotFoundException {
+        ReservaDTO reserva;
+        ItinerarioDTO itinerario;
+
+        ByteArrayInputStream bis = new ByteArrayInputStream(massage);
+        ObjectInputStream in = new ObjectInputStream(bis);
+
+        reserva = (ReservaDTO) in.readObject();
+
+        itinerario = itinerarios.get(reserva.itinerario);
+        itinerario.cabines_disponiveis += reserva.numero_de_cabines;
     }
 
     public ItinerarioDTO[] consultaItinerarios(){
         return itinerarios.toArray(new ItinerarioDTO[0]);
-    }
-
-    public void reservaCanceladaHandle(ReservaDTO reservaCancelada){
-        ItinerarioDTO itinerario = itinerarios.get(reservaCancelada.itinerario);
-        itinerario.cabines_disponiveis++;
     }
 }

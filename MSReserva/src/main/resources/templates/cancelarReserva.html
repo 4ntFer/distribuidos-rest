@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="/js/sse.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <title>Cancelar Reserva</title>
+</head>
+
+<style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th, tbody td {
+      width: 150px;
+      padding: 12px;
+      text-align: left;
+      border: 1px solid #ccc;
+    }
+
+    thead {
+      background-color: #007bff;
+      color: white;
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    tbody {
+      display: block;
+      height: 300px;
+      overflow-y: auto;
+      width: 100%;
+    }
+
+    tbody tr {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    tr:hover {
+      background-color: #eef;
+    }
+    .form-reserva {
+      margin-top: 40px;
+      padding: 20px;
+      background-color: white;
+      border-radius: 8px;
+      max-width: 500px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+</style>
+<body>
+<table id="tabela-reservas">
+    <thead>
+    <tr>
+        <th>Selecionar</th>
+        <th>Data de embarque</th>
+        <th>Passageiros</th>
+        <th>Cabines</th>
+        <th>itinerario</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<button onclick="cancelar()">Reservar</button>
+
+<script>
+    var reservas
+    var idSelecionado
+
+    function cancelar(){
+        console.log(`http://localhost:8080/api/reserva/${idSelecionado}`)
+        $.ajax({
+        url: `http://localhost:8080/api/reserva/${idSelecionado}`,
+        method: 'DELETE',
+        headers:{
+            "username": localStorage.getItem("username")
+        },
+        success: function () {
+            alert('Reserva cancelada');
+            location.reload()
+        },
+        error: function () {
+          alert('Erro ao cancelar reserva');
+        }
+      });
+    }
+
+    $(document).ready(function () {
+      $.ajax({
+        url: 'http://localhost:8080/api/reserva',
+        method: 'GET',
+        headers:{
+            "username": localStorage.getItem("username")
+        },
+        success: function (data) {
+          reservas = data;
+          const tbody = $('#tabela-reservas tbody');
+          let i = 0
+          data.forEach(it => {
+            const linha = `
+              <tr>
+                <td><input type="radio" name="reservas-select" value=${i}></td>
+                <td>${it.data_de_embarque}</td>
+                <td>${it.numero_de_passageiros}</td>
+                <td>${it.numero_de_cabines}</td>
+                <td>${it.itinerario}</td>
+              </tr>
+            `;
+            i++
+            tbody.append(linha);
+          });
+        },
+        error: function () {
+          alert('Erro ao carregar reservas');
+        }
+      });
+
+      $(document).on('change', 'input[name="reservas-select"]', function () {
+        idSelecionado = $(this).val();
+      });
+    });
+</script>
+</body>
+
+</html>

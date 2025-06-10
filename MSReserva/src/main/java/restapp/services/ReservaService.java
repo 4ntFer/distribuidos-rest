@@ -24,6 +24,7 @@ public class ReservaService {
 
     // ROUNTING KEYS
     private static final String RESERVA_CRIADA_RK = "reserva_criada";
+    private static final String RESERVA_CANCELADA_RK = "reserva_cancelada";
     private static final String PAGAMENTO_RECUSADO_RK = "pagamento_recusado";
     private static final String PAGAMENTO_APROVADO_RK = "pagamento_aprovado";
     private static final String BILHETE_GERADO_RK = "bilhete_gerado";
@@ -35,6 +36,7 @@ public class ReservaService {
     private WebClient pagamentoClient = WebClient.builder().baseUrl("http://localhost:8082/api/pagamentos").build();
 
     private final List<ReservaDTO> reservas = new ArrayList<ReservaDTO>();
+    private final Map<String, List<Integer>> reservas_by_user = new HashMap<>();
     private final Map<String, List<Integer>> transacoes = new HashMap<>();
     private final Map<Integer, String> usuarioAssociadoTransacao = new HashMap<>();
 
@@ -108,6 +110,11 @@ public class ReservaService {
 
         reservas.add(reservaDTO);
 
+        if(!reservas_by_user.containsKey(username))
+            reservas_by_user.put(username, new ArrayList<Integer>());
+
+        reservas_by_user.get(username).add(reservas.indexOf(reservaDTO));
+
         try {
             publicaEmReservaCriada(reservaDTO.serialize());
         } catch (IOException e) {
@@ -145,8 +152,34 @@ public class ReservaService {
         return linkPagamentp;
     }
 
-    public void cancelaReserva(String reserva){
+    public ReservaDTO[] getReservasByUser(String username){
+        List<Integer> reservas_indexes = reservas_by_user.get(username);
+        List<ReservaDTO> results = new ArrayList<>();
 
+        if(!reservas_by_user.containsKey(username))
+            return new ReservaDTO[0];
+
+        if(reservas_indexes.size() == 0)
+            return new ReservaDTO[0];
+
+        reservas_indexes.forEach(i -> {
+            results.add(reservas.get(i));
+        });
+
+        return results.toArray(new ReservaDTO[0]);
+    }
+
+    public void cancelaReserva(String username, int index_reserva){
+        int real_index = reservas_by_user.get(username).get(index_reserva);
+        ReservaDTO reserva = reservas.remove(real_index);
+
+        reservas_by_user.get(username).remove(index_reserva);
+
+        try {
+            publicaEmReservaCriada(reserva.serialize());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public SseEmitter getSseEmitter(String username){
@@ -210,7 +243,7 @@ public class ReservaService {
 
             channel.basicPublish(
                     RESERVAS_EXCHANGE_NAME,
-                    RESERVA_CRIADA_RK,
+                    RESERVA_CANCELADA_RK,
                     null,
                     message
             );

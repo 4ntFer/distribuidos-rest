@@ -42,8 +42,16 @@ public class ReservaControler {
         return reservaService.efetuaReserva(username, reservaDTO);
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<Void> cancelarReserva(@PathVariable int id) {
-        return null;
+    @GetMapping
+    public ResponseEntity<ReservaDTO[]> getReservas(
+            @RequestHeader String username){
+        return ResponseEntity.ok(reservaService.getReservasByUser(username));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> cancelarReserva( @RequestHeader String username,
+                                                   @PathVariable Integer id) {
+        reservaService.cancelaReserva(username, id);
+        return ResponseEntity.ok("");
     }
 }
